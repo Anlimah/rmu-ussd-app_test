@@ -104,6 +104,7 @@ class USSDHandler
             foreach ($allForms as $form) {
                 $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
             }
+            $this->redis->set("getAvailableForms", $response);
             $response .= "From DB";
         }
 
