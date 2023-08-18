@@ -4,11 +4,13 @@ namespace Src\Controller;
 
 use Src\Controller\ExposeDataController;
 use Src\System\DatabaseMethods;
+use Predis\Client;
 
 class USSDHandler
 {
     private $expose         = null;
     private $dm             = null;
+    private $redis             = null;
 
     private $sessionId      = null;
     private $serviceCode    = null;
@@ -31,6 +33,7 @@ class USSDHandler
 
         $this->expose = new ExposeDataController();
         $this->dm = new DatabaseMethods();
+        $this->redis = new Client();
 
         $this->activityLogger();
     }
@@ -87,9 +90,21 @@ class USSDHandler
     private function mainMenuResponse()
     {
         $response  = "RMU Forms Online - Select a form to buy.\n\n";
-        $allForms = $this->expose->getAvailableForms();
-        foreach ($allForms as $form) {
-            $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
+        //get redis stored getAvailableForms
+        $availableFormsCached = $this->redis->get("getAvailableForms");
+
+        if ($availableFormsCached) {
+            foreach ($availableFormsCached as $availableForm) {
+                $response .= $availableForm['id'] . ". " . ucwords(strtolower($availableForm['name'])) . "\n";
+            }
+            $response .= "From redis";
+        } else {
+            //check if set, 
+            $allForms = $this->expose->getAvailableForms();
+            foreach ($allForms as $form) {
+                $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
+            }
+            $response .= "From DB";
         }
 
         $this->ussdBody = $response;
