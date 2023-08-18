@@ -94,9 +94,7 @@ class USSDHandler
         $availableFormsCached = $this->redis->get("getAvailableForms");
 
         if ($availableFormsCached) {
-            foreach ($availableFormsCached as $availableForm) {
-                $response .= $availableForm['id'] . ". " . ucwords(strtolower($availableForm['name'])) . "\n";
-            }
+            $response .= $availableFormsCached;
             $response .= "From redis";
         } else {
             //check if set, 
