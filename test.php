@@ -3,5 +3,5 @@
 require_once('bootstrap.php');
 
 $redis = new Predis\Client();
-
-echo $redis->ping();
+$redis->set('name', 'Francis Anlimah');
+echo $redis->get('name');
