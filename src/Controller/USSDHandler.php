@@ -87,7 +87,13 @@ class USSDHandler
     private function mainMenuResponse()
     {
         $response  = "RMU Forms Online - Select a form to buy.\n\n";
-        $allForms = $this->expose->getAvailableForms();
+        if ($main) {
+            $redis = new Redis();
+            $redis->connect('localhost', 6379);
+        } else {
+            $allForms = $this->expose->getAvailableForms();
+        }
+
         foreach ($allForms as $form) {
             $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
         }
