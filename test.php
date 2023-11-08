@@ -1,7 +1,15 @@
 <?php
+phpinfo();
+?>
+
+<?php
 
 require_once('bootstrap.php');
 
-$redis = new Predis\Client();
-$redis->set('name', 'Francis Anlimah');
-echo $redis->get('name');
+use Predis\Client;
+
+$client = new Client();
+
+// Enqueue a job
+$client->lpush('ussd_pay', 'your_job_data_here');
+?>
