@@ -4,11 +4,13 @@ namespace Src\Controller;
 
 use Src\Controller\ExposeDataController;
 use Src\System\DatabaseMethods;
+use Predis\Client;
 
 class USSDHandler
 {
     private $expose         = null;
     private $dm             = null;
+    private $redis          = null;
 
     private $sessionId      = null;
     private $serviceCode    = null;
@@ -31,16 +33,19 @@ class USSDHandler
 
         $this->expose = new ExposeDataController();
         $this->dm = new DatabaseMethods();
+        $this->redis = new Client();
 
-        $this->activityLogger();
+        if ($this->msgType == '1' && $this->ussdBody == '99') $this->msgType = '99';
+        if ($this->msgType == '1' && $this->ussdBody == '0') $this->msgType = '0';
+        if ($this->msgType != '99' || $this->msgType != '0') $this->activityLogger();
     }
 
     public function run()
     {
-        if (!isset($this->sessionId) || !isset($this->phoneNumber) || !isset($this->ussdBody) || !isset($this->networkCode)) {
+        if (!isset($this->sessionId) || !isset($this->phoneNumber) || !isset($this->networkCode)) {
             $this->ussdBody = "[01] Sorry, unable to process request at this time!";
             $this->msgType = "2";
-        } else if (empty($this->sessionId) || empty($this->phoneNumber) || empty($this->ussdBody) || empty($this->networkCode)) {
+        } else if (empty($this->sessionId) || empty($this->phoneNumber) || empty($this->networkCode)) {
             $this->ussdBody = "[02] Sorry, unable to process request at this time!";
             $this->msgType = "2";
         } else if ($this->networkCode  == "03" || $this->networkCode  == "04") {
@@ -49,13 +54,12 @@ class USSDHandler
 
             switch ($this->msgType) {
                 case '0':
-                    $this->mainMenuResponse();
+                case '99':
+                    $this->mainMenuResponse($this->msgType);
                     break;
-
                 case '1':
                     $this->continueResponse();
                     break;
-
                 default:
                     $this->ussdBody = "Sorry, your request couldn't be processed!";
                     $this->msgType = '2';
@@ -84,20 +88,45 @@ class USSDHandler
         $this->msgType = '2';
     }
 
-    private function mainMenuResponse()
+    private function getMenuFormsFromCache($option)
+    {
+        if ($option == '0') {
+            $firstMenuForms = $this->redis->get("firstMenuForms");
+            if ($firstMenuForms) return unserialize($firstMenuForms);
+        } else if ($option == '99') {
+            $nextMenuForms = $this->redis->get("nextMenuForms");
+            if ($nextMenuForms) return unserialize($nextMenuForms);
+        }
+        return 0;
+    }
+
+    private function fetchMenuFormsFromDBandSetCache($option)
+    {
+        $forms = $this->getMenuFormsFromCache($option);
+        if (empty($forms)) {
+            $forms = $this->expose->getAvailableForms();
+            if (count($forms) > 4) {
+                $firstMenuForms = array_slice($forms, 0, 4, true);
+                $nextMenuForms = array_slice($forms, 4, null, true);
+                if (isset($firstMenuForms)) $this->redis->set("firstMenuForms", serialize($firstMenuForms));
+                if (isset($nextMenuForms)) $this->redis->set("nextMenuForms", serialize($nextMenuForms));
+            } else {
+                if (isset($firstMenuForms)) $this->redis->set("firstMenuForms", serialize($forms));
+            }
+            $forms = $this->getMenuFormsFromCache($option);
+        }
+        return $forms;
+    }
+
+    private function mainMenuResponse($option)
     {
         $response  = "RMU Forms Online - Select a form to buy.\n\n";
-        if ($main) {
-            $redis = new Redis();
-            $redis->connect('localhost', 6379);
-        } else {
-            $allForms = $this->expose->getAvailableForms();
-        }
-
+        $allForms = $this->fetchMenuFormsFromDBandSetCache($option);
         foreach ($allForms as $form) {
             $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
         }
-
+        if ($option == '0') $response  .= "99. More\n";
+        elseif ($option == '99') $response  .= "0. Back\n";
         $this->ussdBody = $response;
         $this->msgType = "1";
     }
@@ -113,9 +142,15 @@ class USSDHandler
 
         if (isset($level[0]) && !empty($level[0]) && !isset($level[1])) {
             if ($this->validateSelectedFormOption($level[0])) {
-                $formInfo = $this->expose->getFormPriceA($level[0]);
-                $response = $formInfo[0]["name"] . " forms cost GHc" . $formInfo[0]["amount"] . ".  Enter 1 to buy.\n";
-                $response .= "1. Buy";
+                $formIDCahched = "formInfo" . $level[0];
+                $formInfoCached = $this->redis->get($formIDCahched);
+                if ($formInfoCached) {
+                    $response = $formInfoCached;
+                } else {
+                    $formInfo = $this->expose->getFormPriceA($level[0]);
+                    $response = $formInfo[0]["name"] . " forms cost GHc" . $formInfo[0]["amount"] . ".\n  Enter 1 to buy.";
+                    $this->redis->set($formIDCahched, $response);
+                }
                 $msgType = '1';
             } else {
                 $response = "Sorry you've entered an invalid option.";
