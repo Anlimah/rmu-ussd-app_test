@@ -4,6 +4,7 @@ require_once('bootstrap.php');
 
 use Src\Controller\USSDHandler;
 use Src\Controller\PaymentController;
+use Predis\Client;
 
 switch ($_SERVER["REQUEST_METHOD"]) {
     case 'POST':
@@ -21,10 +22,7 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         header("Content-Type: application/json");
         echo json_encode($response);
 
-        if (!empty($payData)) {
-            sleep(8);
-            (new PaymentController())->orchardPaymentControllerB($payData);
-        }
+        if (!empty($payData)) (new Client())->publish('payment_channel', json_encode($payData));
 
         break;
 
@@ -33,3 +31,5 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         header("Content-Type: text/html");
         break;
 }
+
+exit();
