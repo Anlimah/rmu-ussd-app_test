@@ -1,5 +1,5 @@
 <?php
-
+echo "STARTING...";
 require_once('bootstrap.php');
 
 use Predis\Client;
