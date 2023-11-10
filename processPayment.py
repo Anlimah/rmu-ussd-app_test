@@ -3,7 +3,7 @@ import redis
 import requests
 
 channel_name = 'payment_channel'
-php_script_url = 'http://your-server/your-script.php'
+target_url = 'https://test.pay.rmuictonline.com'
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 pubsub = redis_client.pubsub()
@@ -15,7 +15,7 @@ for message in pubsub.listen():
     if message['type'] == 'message':
         payment_data = json.loads(message['data'])
         print("\n", json.dumps(payment_data))
-        response = requests.post(php_script_url, data={'payment_data': json.dumps(payment_data)})
+        response = requests.post(target_url, data={'payment_data': json.dumps(payment_data)})
         if response.status_code == 200:
             print("Payment data sent successfully.")
         else:
