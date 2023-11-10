@@ -15,7 +15,7 @@ for message in pubsub.listen():
     if message['type'] == 'message':
         payment_data = json.loads(message['data'])
         print("\n", json.dumps(payment_data))
-        response = requests.post(target_url, data={'payment_data': json.dumps(payment_data)})
+        response = requests.post(target_url, data=json.dumps(payment_data))
         if response.status_code == 200:
             print("Payment data sent successfully.")
         else:

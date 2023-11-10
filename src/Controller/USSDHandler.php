@@ -201,6 +201,7 @@ class USSDHandler
                     $admin_period = $this->expose->getCurrentAdmissionPeriodID();
 
                     $data = array(
+                        "pay_category" => "forms",
                         "first_name" => "USSD",
                         "last_name" => $this->phoneNumber,
                         "email_address" => "",
