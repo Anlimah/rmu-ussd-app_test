@@ -22,7 +22,11 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         echo json_encode($response);
 
         if (!empty($payData)) (new Client())->publish('paymentChannel', json_encode($payData));
-
+        else file_put_contents(
+            'processUSSD.log',
+            "No payment data available. Date: " . date('Y-m-d H:i:s') . "\n" . $response,
+            FILE_APPEND
+        );
         break;
 
     default:
