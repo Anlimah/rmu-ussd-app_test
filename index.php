@@ -22,12 +22,13 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         echo json_encode($response);
 
         if (!empty($payData)) {
+            $redis = new Client();
+            $redis->publish('paymentChannel', json_encode($payData));
             file_put_contents(
                 'processUSSD.log',
                 date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($payData) . "\n",
                 FILE_APPEND
             );
-            (new Client())->publish('paymentChannel', json_encode($payData));
         } else {
             file_put_contents(
                 'processUSSD.log',
