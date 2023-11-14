@@ -13,11 +13,7 @@ redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 pubsub = redis_client.pubsub()
 pubsub.subscribe(channel_name)
 
-logging.info("Started...")
-
 for message in pubsub.listen():
-    logging.info("Listening...")
-
     if message['type'] == 'message':
         payment_data = json.loads(message['data'])
 
