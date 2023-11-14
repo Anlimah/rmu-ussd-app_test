@@ -33,7 +33,7 @@ switch ($_SERVER["REQUEST_METHOD"]) {
             } catch (\Exception $e) {
                 file_put_contents(
                     'processUSSD.log',
-                    date('Y-m-d H:i:s') . " - Error.\n" . json_encode($payData) . "\n",
+                    date('Y-m-d H:i:s') . " - Error.\n" . $e->getMessage() . "\n",
                     FILE_APPEND
                 );
             }
