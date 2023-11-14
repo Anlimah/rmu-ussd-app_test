@@ -23,7 +23,10 @@ switch ($_SERVER["REQUEST_METHOD"]) {
 
         if (!empty($payData)) {
             try {
-                $redis = new Client();
+                $redis = new Client([
+                    'host' => '127.0.0.1',
+                    'port' => 6379,
+                ]);
                 $redis->publish('paymentChannel', json_encode($payData));
                 file_put_contents(
                     'processUSSD.log',
