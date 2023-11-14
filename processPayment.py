@@ -24,16 +24,12 @@ for message in pubsub.listen():
         headers = {'Content-Type': 'application/json'}  # Set the Content-Type header
         try:
             response = requests.post(target_url, data=json.dumps(payment_data), headers=headers)
-
             if response.status_code == 200 or response.status_code == 201:
                 logger.info("Status: Success %s", payment_data)
             else:
                 logger.error(
                     "Status: Error %s. Error message: %s. Response: %s",
-                    payment_data,
-                    response.text,
-                    response.status_code,
+                    payment_data, response.text, response.status_code,
                 )
-
         except requests.RequestException as e:
             logger.error("Error making the request: %s", str(e))

@@ -201,7 +201,6 @@ class USSDHandler
                     $admin_period = $this->expose->getCurrentAdmissionPeriodID();
 
                     $data = array(
-                        "pay_category" => "forms",
                         "first_name" => "USSD",
                         "last_name" => $this->phoneNumber,
                         "email_address" => "",
@@ -216,7 +215,7 @@ class USSDHandler
                         "admin_period" => $admin_period
                     );
 
-                    $this->payData = $data;
+                    $this->payData = array("pay_category" => "forms", "data" => $data);
                     $response = "Thank you! Payment prompt will be sent to {$level[2]} shortly.";
                 }
             } else {
