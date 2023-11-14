@@ -3,7 +3,6 @@
 require_once('bootstrap.php');
 
 use Src\Controller\USSDHandler;
-use Src\Controller\PaymentController;
 use Predis\Client;
 
 switch ($_SERVER["REQUEST_METHOD"]) {
@@ -22,7 +21,7 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         header("Content-Type: application/json");
         echo json_encode($response);
 
-        if (!empty($payData)) (new Client())->publish('payment_channel', json_encode($payData));
+        if (!empty($payData)) (new Client())->publish('paymentChannel', json_encode($payData));
 
         break;
 
