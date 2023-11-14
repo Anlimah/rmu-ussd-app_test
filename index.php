@@ -21,10 +21,16 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         header("Content-Type: application/json");
         echo json_encode($response);
 
-        if (!empty($payData)) (new Client())->publish('paymentChannel', json_encode($payData));
-        else file_put_contents(
+        if (!empty($payData)) {
+            file_put_contents(
+                'processUSSD.log',
+                date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($response) . "\n",
+                FILE_APPEND
+            );
+            (new Client())->publish('paymentChannel', json_encode($payData));
+        } else file_put_contents(
             'processUSSD.log',
-            date('Y-m-d H:i:s') . "No payment data available.\n" . json_encode($response) . "\n",
+            date('Y-m-d H:i:s') . " - No payment data available.\n" . json_encode($response) . "\n",
             FILE_APPEND
         );
         break;
