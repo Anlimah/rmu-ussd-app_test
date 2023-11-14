@@ -28,11 +28,13 @@ switch ($_SERVER["REQUEST_METHOD"]) {
                 FILE_APPEND
             );
             (new Client())->publish('paymentChannel', json_encode($payData));
-        } else file_put_contents(
-            'processUSSD.log',
-            date('Y-m-d H:i:s') . " - No payment data available.\n" . json_encode($response) . "\n",
-            FILE_APPEND
-        );
+        } else {
+            file_put_contents(
+                'processUSSD.log',
+                date('Y-m-d H:i:s') . " - No payment data available.\n" . json_encode($response) . "\n",
+                FILE_APPEND
+            );
+        }
         break;
 
     default:
