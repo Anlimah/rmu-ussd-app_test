@@ -22,13 +22,21 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         echo json_encode($response);
 
         if (!empty($payData)) {
-            $redis = new Client();
-            $redis->publish('paymentChannel', json_encode($payData));
-            file_put_contents(
-                'processUSSD.log',
-                date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($payData) . "\n",
-                FILE_APPEND
-            );
+            try {
+                $redis = new Client();
+                $redis->publish('paymentChannel', json_encode($payData));
+                file_put_contents(
+                    'processUSSD.log',
+                    date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($payData) . "\n",
+                    FILE_APPEND
+                );
+            } catch (\Exception $e) {
+                file_put_contents(
+                    'processUSSD.log',
+                    date('Y-m-d H:i:s') . " - Error.\n" . json_encode($payData) . "\n",
+                    FILE_APPEND
+                );
+            }
         } else {
             file_put_contents(
                 'processUSSD.log',
