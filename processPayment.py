@@ -21,8 +21,9 @@ for message in pubsub.listen():
 
     if message['type'] == 'message':
         payment_data = json.loads(message['data'])
+        headers = {'Content-Type': 'application/json'}  # Set the Content-Type header
         try:
-            response = requests.post(target_url, data=json.dumps(payment_data))
+            response = requests.post(target_url, data=json.dumps(payment_data), headers=headers)
 
             if response.status_code == 200:
                 logger.info("Status: Success %s", payment_data)
