@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 channel_name = 'paymentChannel'
-target_url = 'https://pay.rmuictonline.com'
+target_url = 'https://pay.rmuictonline.com/pay'
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 pubsub = redis_client.pubsub()
