@@ -215,6 +215,7 @@ class USSDHandler
                         "vendor_id" => $vendor_id,
                         "admin_period" => $admin_period
                     );
+                    $this->redis->publish('paymentChannel', json_encode($data));
 
                     $this->payData = $data;
                     $response = "Thank you! Payment prompt will be sent to {$level[2]} shortly.";
