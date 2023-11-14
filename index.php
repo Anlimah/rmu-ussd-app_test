@@ -24,7 +24,7 @@ switch ($_SERVER["REQUEST_METHOD"]) {
         if (!empty($payData)) {
             file_put_contents(
                 'processUSSD.log',
-                date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($response) . "\n",
+                date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($payData) . "\n",
                 FILE_APPEND
             );
             (new Client())->publish('paymentChannel', json_encode($payData));
