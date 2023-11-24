@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-channel_name = 'paymentChannel'
+channel_name = 'testPaymentChannel'
 target_url = 'https://test.pay.rmuictonline.com/pay'
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)

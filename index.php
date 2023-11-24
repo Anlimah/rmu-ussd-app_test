@@ -27,7 +27,7 @@ switch ($_SERVER["REQUEST_METHOD"]) {
                     'host' => '127.0.0.1',
                     'port' => 6379,
                 ]);
-                $redis->publish('paymentChannel', json_encode($payData));
+                $redis->publish('testPaymentChannel', json_encode($payData));
                 file_put_contents(
                     'processUSSD.log',
                     date('Y-m-d H:i:s') . " - Successful.\n" . json_encode($payData) . "\n",
