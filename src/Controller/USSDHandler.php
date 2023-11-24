@@ -2,13 +2,11 @@
 
 namespace Src\Controller;
 
-use Src\Controller\ExposeDataController;
 use Src\System\DatabaseMethods;
 use Predis\Client;
 
 class USSDHandler
 {
-    private $expose         = null;
     private $dm             = null;
     private $redis          = null;
 
@@ -31,7 +29,6 @@ class USSDHandler
         $this->ussdBody     = $data["ussd_body"];
         $this->networkCode  = $data["nw_code"];
 
-        $this->expose = new ExposeDataController();
         $this->dm = new DatabaseMethods();
         $this->redis = new Client();
 
@@ -51,7 +48,6 @@ class USSDHandler
         } else if ($this->networkCode  == "03" || $this->networkCode  == "04") {
             $this->unSupportedNetworksResponse();
         } else {
-
             switch ($this->msgType) {
                 case '0':
                 case '99':
@@ -104,7 +100,7 @@ class USSDHandler
     {
         $forms = $this->getMenuFormsFromCache($option);
         if (empty($forms)) {
-            $forms = $this->expose->getAvailableForms();
+            $forms = $this->getAvailableForms();
             if (count($forms) > 4) {
                 $firstMenuForms = array_slice($forms, 0, 4, true);
                 $nextMenuForms = array_slice($forms, 4, null, true);
@@ -147,7 +143,7 @@ class USSDHandler
                 if ($formInfoCached) {
                     $response = $formInfoCached;
                 } else {
-                    $formInfo = $this->expose->getFormPriceA($level[0]);
+                    $formInfo = $this->getFormPriceA($level[0]);
                     $response = $formInfo[0]["name"] . " forms cost GHc" . $formInfo[0]["amount"] . ".\n  Enter 1 to buy.";
                     $this->redis->set($formIDCahched, $response);
                 }
@@ -197,8 +193,8 @@ class USSDHandler
                 } else {
                     $vendor_id = "1665605087";
                     $phone_number = "0" . substr($level[2], $phone_number_start, 9);
-                    $formInfo = $this->expose->getFormPriceA($level[0]);
-                    $admin_period = $this->expose->getCurrentAdmissionPeriodID();
+                    $formInfo = $this->getFormPriceA($level[0]);
+                    $admin_period = $this->getCurrentAdmissionPeriodID();
 
                     $data = array(
                         "first_name" => "USSD",
@@ -234,7 +230,7 @@ class USSDHandler
     private function validateSelectedFormOption($input)
     {
         $userSelectedForm = (int) $this->validateSelectedOption($input);
-        if ($userSelectedForm > 0 && $userSelectedForm <= count($this->expose->getAvailableForms())) return true;
+        if ($userSelectedForm > 0 && $userSelectedForm <= count($this->getAvailableForms())) return true;
         return false;
     }
 
@@ -294,5 +290,20 @@ class USSDHandler
         $query = "DELETE FROM `ussd_activity_logs` WHERE `session_id`=:s AND `msisdn`=:p";
         $params = array(":s" => $this->sessionId, ":p" => $this->phoneNumber);
         $this->dm->inputData($query, $params);
+    }
+
+    public function getCurrentAdmissionPeriodID()
+    {
+        return $this->dm->getID("SELECT `id` FROM `admission_period` WHERE `active` = 1");
+    }
+
+    public function getFormPriceA(int $form_id)
+    {
+        return $this->dm->getData("SELECT * FROM `forms` WHERE `id` = :fi", array(":fi" => $form_id));
+    }
+
+    public function getAvailableForms()
+    {
+        return $this->dm->getData("SELECT * FROM `forms`");
     }
 }
