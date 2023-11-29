@@ -116,7 +116,7 @@ class USSDHandler
 
     private function mainMenuResponse($option)
     {
-        $response  = "RMU Forms Online - Select a form to buy.\n\n";
+        $response  = "RMU Forms Online - Select a form to buy.\n";
         $allForms = $this->fetchMenuFormsFromDBandSetCache($option);
         foreach ($allForms as $form) {
             $response .= $form['id'] . ". " . ucwords(strtolower($form['name'])) . "\n";
@@ -144,7 +144,7 @@ class USSDHandler
                     $response = $formInfoCached;
                 } else {
                     $formInfo = $this->getFormPriceA($level[0]);
-                    $response = $formInfo[0]["name"] . " forms cost GHc" . $formInfo[0]["amount"] . ".\n  Enter 1 to buy.";
+                    $response = $formInfo[0]["name"] . " forms cost GHc" . $formInfo[0]["amount"] . ".\nEnter 1 to continue.";
                     $this->redis->set($formIDCahched, $response);
                 }
                 $msgType = '1';
@@ -265,7 +265,7 @@ class USSDHandler
 
     private function fetchSessionLogs()
     {
-        $query = "SELECT * FROM `ussd_activity_logs` WHERE `session_id`=:s AND `msisdn`=:p AND `msg_type` <> 0 ORDER BY `timestamp` ASC";
+        $query = "SELECT * FROM `ussd_activity_logs` WHERE `session_id`=:s AND `msisdn`=:p AND `msg_type` NOT IN (0, 99) ORDER BY `timestamp` ASC";
         $params = array(":s" => $this->sessionId, ":p" => $this->phoneNumber);
         return $this->dm->inputData($query, $params);
     }
