@@ -87,10 +87,10 @@ class USSDHandler
     private function getMenuFormsFromCache($option)
     {
         if ($option == '0') {
-            $firstMenuForms = $this->redis->get("firstMenuForms");
+            $firstMenuForms = $this->redis->get("testFirstMenuForms");
             if ($firstMenuForms) return unserialize($firstMenuForms);
         } else if ($option == '99') {
-            $nextMenuForms = $this->redis->get("nextMenuForms");
+            $nextMenuForms = $this->redis->get("testNextMenuForms");
             if ($nextMenuForms) return unserialize($nextMenuForms);
         }
         return 0;
@@ -104,10 +104,10 @@ class USSDHandler
             if (count($forms) > 4) {
                 $firstMenuForms = array_slice($forms, 0, 4, true);
                 $nextMenuForms = array_slice($forms, 4, null, true);
-                if (isset($firstMenuForms)) $this->redis->set("firstMenuForms", serialize($firstMenuForms));
-                if (isset($nextMenuForms)) $this->redis->set("nextMenuForms", serialize($nextMenuForms));
+                if (isset($firstMenuForms)) $this->redis->set("testFirstMenuForms", serialize($firstMenuForms));
+                if (isset($nextMenuForms)) $this->redis->set("testNextMenuForms", serialize($nextMenuForms));
             } else {
-                if (isset($firstMenuForms)) $this->redis->set("firstMenuForms", serialize($forms));
+                if (isset($firstMenuForms)) $this->redis->set("testFirstMenuForms", serialize($forms));
             }
             $forms = $this->getMenuFormsFromCache($option);
         }
